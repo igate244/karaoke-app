@@ -11,7 +11,7 @@ GitHub Actions が自動でテスト → ビルド → GitHub Pages に公開（
 PCは不要。GitHubの操作はスマホのブラウザ（またはGitHubアプリ）でできる。
 
 ## アプリのURL
-`https://<GitHubユーザー名>.github.io/karaoke-app/`
+`https://igate244.github.io/karaoke-app/`
 → Safari/Chromeで開いて「ホーム画面に追加」するとアプリとして使える（オフラインでも動く）。
 
 ---
@@ -30,7 +30,7 @@ GitHubでリポジトリを開く → **Settings → Pages → Build and deploym
 
 1. スマホのブラウザで Google Cloud Console（console.cloud.google.com）を開く
 2. 読書記録アプリのプロジェクト → **APIとサービス → 認証情報** → 既存の「OAuth 2.0 クライアントID」を開く
-3. **承認済みの JavaScript 生成元** に `https://<GitHubユーザー名>.github.io` を追加して保存
+3. **承認済みの JavaScript 生成元** に `https://igate244.github.io` を追加して保存
 4. クライアントID（`xxxx.apps.googleusercontent.com`）をコピー
 5. どちらか一方に入れる
    - かんたん：アプリの **設定 → Googleドライブ** に貼って保存（その端末だけ）
@@ -55,6 +55,6 @@ GitHubでリポジトリを開く → **Settings → Pages → Build and deploym
 
 ## 困ったとき
 - **Actions が赤い**：失敗した画面のURLか、エラーのスクショをClaudeに渡す
-- **Googleに接続できない**：「承認済みの JavaScript 生成元」に `https://<ユーザー名>.github.io` が入っているか確認
+- **Googleに接続できない**：「承認済みの JavaScript 生成元」に `https://igate244.github.io` が入っているか確認
 - **データが消えた気がする**：別の利用者になっていないか（設定 → 利用者）。それでもなければDriveから復元
 - **iPhoneで長く使わないとデータが消えることがある**：Safariの仕様。ホーム画面に追加して使う＋自動バックアップで防ぐ
