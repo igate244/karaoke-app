@@ -203,12 +203,44 @@ export function getHaystack(song: Song): string {
   }
   let h = haystackCache.map.get(song.id);
   if (h == null) {
-    h = [song.title, song.titleKana, song.artist, song.artistKana, ...song.tags]
+    h = [song.title, song.titleKana, song.artist, song.artistKana, ...song.tags, song.memo, ...logMemos(song.id).map((m) => m.text)]
       .map(normalize)
       .join('\u0000');
     haystackCache.map.set(song.id, h);
   }
   return h;
+}
+
+let logMemoCache: { rev: number; map: Map<string, { date: string; text: string }[]> } | null = null;
+
+/** その曲の歌唱ログに書いたメモ（新しい順） */
+function logMemos(songId: string): { date: string; text: string }[] {
+  if (!logMemoCache || logMemoCache.rev !== state.revision) {
+    const map = new Map<string, { date: string; text: string }[]>();
+    for (const l of state.logs) {
+      if (!l.memo?.trim()) continue;
+      const arr = map.get(l.songId) ?? [];
+      arr.push({ date: l.date, text: l.memo.trim() });
+      map.set(l.songId, arr);
+    }
+    for (const arr of map.values()) arr.sort((a, b) => b.date.localeCompare(a.date));
+    logMemoCache = { rev: state.revision, map };
+  }
+  return logMemoCache.map.get(songId) ?? [];
+}
+
+/** 検索語がメモに当たっていれば、一覧に出す抜粋を返す */
+export function memoHit(song: Song, query: string): { label: string; text: string } | null {
+  const terms = query.split(/[\s\u3000]+/).map(normalize).filter(Boolean);
+  if (!terms.length) return null;
+  const hits = (text: string) => {
+    const n = normalize(text);
+    return terms.some((t) => n.includes(t));
+  };
+  if (song.memo?.trim() && hits(song.memo)) return { label: 'メモ', text: song.memo.trim() };
+  const lm = logMemos(song.id).find((m) => hits(m.text));
+  if (lm) return { label: `歌唱メモ ${Number(lm.date.slice(5, 7))}/${Number(lm.date.slice(8, 10))}`, text: lm.text };
+  return null;
 }
 
 export function allTags(): string[] {

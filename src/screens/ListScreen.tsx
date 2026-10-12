@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Machine, Song } from '../types';
-import { EMPTY_STATS, allTags, getHaystack, getStatsMap, useStore } from '../store';
+import { EMPTY_STATS, allTags, getHaystack, getStatsMap, memoHit, useStore } from '../store';
 import { matchesQuery, normalize } from '../normalize';
 import { go } from '../router';
 import { pref, setPref } from '../users';
@@ -124,7 +124,7 @@ export function ListScreen() {
             type="search"
             value={f.q}
             onChange={(e) => update({ q: e.target.value })}
-            placeholder="曲名・アーティストで検索"
+            placeholder="曲名・アーティスト・メモで検索"
             enterKeyHint="search"
             aria-label="検索"
           />
@@ -226,6 +226,14 @@ export function ListScreen() {
                           )}
                           {st.lastDate && <span className="muted"> · {fmtDate(st.lastDate)}</span>}
                         </div>
+                        {(() => {
+                          const m = f.q.trim() ? memoHit(s, f.q) : null;
+                          return m ? (
+                            <div className="row-memo">
+                              <b>{m.label}</b> {m.text}
+                            </div>
+                          ) : null;
+                        })()}
                         {s.tags.length > 0 && (
                           <div className="row-tags">
                             {s.tags.map((t) => (
