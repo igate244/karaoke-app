@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Mood, PreferredMachine, Song } from '../types';
-import { MOODS, PREFERRED_MACHINES, RATING_LABELS } from '../types';
+import type { PreferredMachine, Song } from '../types';
+import { PREFERRED_MACHINES, RATING_LABELS } from '../types';
 import { allTags, findDuplicate } from '../store';
 import { newId } from '../users';
 import { Artwork, KeyStepper, Segmented, Stars, TagInput } from './ui';
@@ -111,11 +111,6 @@ export function SongForm({
       <div className="field">
         <span>よく使う機種</span>
         <Segmented<PreferredMachine> options={PREFERRED_MACHINES} value={s.preferredMachine} onChange={(v) => v && set('preferredMachine', v)} />
-      </div>
-
-      <div className="field">
-        <span>曲調</span>
-        <Segmented<Mood> options={MOODS} value={s.mood} onChange={(v) => set('mood', v)} allowNone />
       </div>
 
       <div className="field">

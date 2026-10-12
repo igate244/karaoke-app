@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import type { Machine, Mood, Song } from '../types';
-import { MOODS, RATING_LABELS } from '../types';
+import type { Machine, Song } from '../types';
+import { RATING_LABELS } from '../types';
 import { EMPTY_STATS, allTags, getStatsMap, useStore } from '../store';
 import { applyFilters, type Filters } from './ListScreen';
 import { go } from '../router';
@@ -8,12 +8,12 @@ import { userPref, setUserPref } from '../users';
 import { LogSheet } from '../components/LogSheet';
 import { Artwork, Icon, Segmented, Stars, fmtScore, formatKey } from '../components/ui';
 
-type Cond = Pick<Filters, 'minRating' | 'tags' | 'mood' | 'machine'>;
+type Cond = Pick<Filters, 'minRating' | 'tags' | 'machine'>;
 
 export function RandomScreen() {
   const { songs } = useStore();
   const [cond, setCondState] = useState<Cond>(() =>
-    userPref<Cond>('randomCond', { minRating: 3, tags: [], mood: null, machine: null }),
+    ({ minRating: 3, tags: [], machine: null, ...userPref<Partial<Cond>>('randomCond', {}) }) as Cond,
   );
   const [current, setCurrent] = useState<Song | null>(null);
   const [logOpen, setLogOpen] = useState(false);
@@ -98,10 +98,6 @@ export function RandomScreen() {
             </button>
           ))}
         </div>
-      </div>
-      <div className="field">
-        <span>曲調</span>
-        <Segmented<Mood> options={MOODS} value={cond.mood} onChange={(v) => setCond({ mood: v })} allowNone />
       </div>
       <div className="field">
         <span>機種</span>

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Machine, Mood, Song } from '../types';
-import { MOODS } from '../types';
+import type { Machine, Song } from '../types';
 import { EMPTY_STATS, allTags, getHaystack, getStatsMap, useStore } from '../store';
 import { matchesQuery, normalize } from '../normalize';
 import { go } from '../router';
@@ -22,12 +21,11 @@ export interface Filters {
   minRating: number;
   artist: string | null;
   tags: string[];
-  mood: Mood | null;
   machine: Machine | null;
   favorite: boolean;
 }
 
-const EMPTY_FILTERS: Filters = { q: '', minRating: 0, artist: null, tags: [], mood: null, machine: null, favorite: false };
+const EMPTY_FILTERS: Filters = { q: '', minRating: 0, artist: null, tags: [], machine: null, favorite: false };
 
 function loadFilters(): Filters {
   try {
@@ -45,7 +43,6 @@ export function applyFilters(songs: Song[], f: Filters): Song[] {
       s.rating >= f.minRating &&
       (!na || normalize(s.artist) === na) &&
       f.tags.every((t) => s.tags.includes(t)) &&
-      (!f.mood || s.mood === f.mood) &&
       (!f.machine || s.preferredMachine === f.machine || s.preferredMachine === 'どちらでも') &&
       (!f.favorite || s.favorite) &&
       (!f.q.trim() || matchesQuery(getHaystack(s), f.q)),
@@ -98,8 +95,6 @@ export function ListScreen() {
   const activeChips: { label: string; clear: () => void }[] = [];
   if (f.minRating) activeChips.push({ label: `★${f.minRating}以上`, clear: () => update({ minRating: 0 }) });
   if (f.artist) activeChips.push({ label: f.artist, clear: () => update({ artist: null }) });
-  for (const t of f.tags) activeChips.push({ label: `#${t}`, clear: () => update({ tags: f.tags.filter((x) => x !== t) }) });
-  if (f.mood) activeChips.push({ label: f.mood, clear: () => update({ mood: null }) });
   if (f.machine) activeChips.push({ label: f.machine, clear: () => update({ machine: null }) });
   if (f.favorite) activeChips.push({ label: 'お気に入り', clear: () => update({ favorite: false }) });
 
@@ -158,6 +153,23 @@ export function ListScreen() {
             <Icon name={showScore ? 'eye' : 'eyeOff'} size={18} />
           </button>
         </div>
+        {tags.length > 0 && (
+          <div className="tag-bar" role="group" aria-label="タグで絞り込み">
+            {tags.map((t) => {
+              const on = f.tags.includes(t);
+              return (
+                <button
+                  key={t}
+                  className={`chip ${on ? 'on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() => update({ tags: on ? f.tags.filter((x) => x !== t) : [...f.tags, t] })}
+                >
+                  #{t}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {activeChips.length > 0 && (
           <div className="chips active-chips">
             {activeChips.map((c) => (
@@ -165,7 +177,7 @@ export function ListScreen() {
                 {c.label} ×
               </button>
             ))}
-            <button className="chip ghost" onClick={() => update({ ...EMPTY_FILTERS, q: f.q })}>
+            <button className="chip ghost" onClick={() => update({ ...EMPTY_FILTERS, q: f.q, tags: f.tags })}>
               全部はずす
             </button>
           </div>
@@ -214,6 +226,15 @@ export function ListScreen() {
                           )}
                           {st.lastDate && <span className="muted"> · {fmtDate(st.lastDate)}</span>}
                         </div>
+                        {s.tags.length > 0 && (
+                          <div className="row-tags">
+                            {s.tags.map((t) => (
+                              <span key={t} className={f.tags.includes(t) ? 'on' : ''}>
+                                #{t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="song-side">
                         <Stars value={s.rating} size="sm" />
@@ -243,10 +264,6 @@ export function ListScreen() {
           </div>
         </div>
         <div className="field">
-          <span>曲調</span>
-          <Segmented<Mood> options={MOODS} value={f.mood} onChange={(v) => update({ mood: v })} allowNone />
-        </div>
-        <div className="field">
           <span>機種</span>
           <Segmented<Machine> options={['DAM', 'JOYSOUND']} value={f.machine} onChange={(v) => update({ machine: v })} allowNone />
         </div>
@@ -254,22 +271,6 @@ export function ListScreen() {
           <input type="checkbox" checked={f.favorite} onChange={(e) => update({ favorite: e.target.checked })} />
           <span>お気に入りだけ</span>
         </label>
-        {tags.length > 0 && (
-          <div className="field">
-            <span>タグ（全部含む曲）</span>
-            <div className="chips">
-              {tags.map((t) => (
-                <button
-                  key={t}
-                  className={`chip ${f.tags.includes(t) ? 'on' : ''}`}
-                  onClick={() => update({ tags: f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t] })}
-                >
-                  #{t}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         <label className="field">
           <span>アーティスト</span>
           <select value={f.artist ?? ''} onChange={(e) => update({ artist: e.target.value || null })}>

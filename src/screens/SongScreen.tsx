@@ -90,7 +90,7 @@ export function SongScreen({ id, edit }: { id: string; edit: boolean }) {
           <h1 className="detail-title">{song.title}</h1>
           <button className="artist-link big" onClick={() => {
             try {
-              sessionStorage.setItem('karaoke:filters', JSON.stringify({ q: '', minRating: 0, artist: song.artist, tags: [], mood: null, machine: null, favorite: false }));
+              sessionStorage.setItem('karaoke:filters', JSON.stringify({ q: '', minRating: 0, artist: song.artist, tags: [], machine: null, favorite: false }));
             } catch { /* noop */ }
             go('/');
           }}>
@@ -125,7 +125,6 @@ export function SongScreen({ id, edit }: { id: string; edit: boolean }) {
 
       <div className="chips">
         {song.preferredMachine !== 'どちらでも' && <span className="chip static">{song.preferredMachine}</span>}
-        {song.mood && <span className="chip static">{song.mood}</span>}
         {song.tags.map((t) => (
           <span key={t} className="chip static">
             #{t}
