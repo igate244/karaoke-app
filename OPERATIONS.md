@@ -25,19 +25,14 @@ GitHubでリポジトリを開く → **Settings → Pages → Build and deploym
 リポジトリの **Actions** タブで `deploy` が緑のチェックになっていればOK。
 赤い×のときは、その画面のURLをClaudeに貼って「直して」と言えばいい。
 
-### 3. Googleドライブバックアップを使えるようにする（任意）
-バックアップにはGoogleの「OAuthクライアントID」が要る。読書記録アプリで作ったものを流用するのが一番早い。
+### 3. Googleドライブバックアップ（設定済み）
+読書記録アプリの Google Cloud プロジェクト（reading-log-igate）の OAuth クライアント「読書記録 PWA」を共用している。
+- 承認済みの JavaScript 生成元に `https://igate244.github.io` を追加済み
+- クライアントIDは `.github/workflows/deploy.yml` に記入済み（ビルド時に埋め込まれる）
+- Google Drive API は有効
+- 同意画面に出るアプリ名は読書アプリと同じになる
 
-1. スマホのブラウザで Google Cloud Console（console.cloud.google.com）を開く
-2. 読書記録アプリのプロジェクト → **APIとサービス → 認証情報** → 既存の「OAuth 2.0 クライアントID」を開く
-3. **承認済みの JavaScript 生成元** に `https://igate244.github.io` を追加して保存
-4. クライアントID（`xxxx.apps.googleusercontent.com`）をコピー
-5. どちらか一方に入れる
-   - かんたん：アプリの **設定 → Googleドライブ** に貼って保存（その端末だけ）
-   - 全員共通：GitHub の **Settings → Secrets and variables → Actions → Variables** に `GOOGLE_CLIENT_ID` という名前で登録 → 次の公開から全員に反映
-6. **Google Drive API** が有効になっていることも確認（読書アプリで使っていれば有効のはず）
-
-※ 同意画面に出るアプリ名は読書アプリと同じになる。気になるなら新しいプロジェクトを作って同じ手順で。
+使い方：アプリの 設定 → 「Googleに接続」→ 自分のGoogleアカウントで許可。
 
 ---
 

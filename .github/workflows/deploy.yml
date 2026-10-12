@@ -27,8 +27,9 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          # GitHub の Settings → Secrets and variables → Actions → Variables に入れる（任意）
-          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          # OAuthクライアントID（公開して問題ない値）。reading-log-igate プロジェクトの「読書記録 PWA」を共用。
+          # GitHub の Variables に GOOGLE_CLIENT_ID を入れるとそちらが優先される
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID || '1090226469026-gjmdmd131d784g5d8k1er1mho3ihdu2b.apps.googleusercontent.com' }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
