@@ -145,6 +145,8 @@ input[type='checkbox'] {
   border: 1px solid var(--line);
   font-weight: 600;
   font-size: 15px;
+  white-space: nowrap;
+  flex: none;
 }
 .btn:active {
   transform: scale(0.98);
