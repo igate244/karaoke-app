@@ -1,4 +1,7 @@
-# main に push されたら、テスト → ビルド → GitHub Pages に公開
+# main に push されたら、テスト → ビルド → 公開
+#   本番：Firebase Hosting（https://karaoke-mochiuta.web.app ／ KEEP の Firebase プロジェクトに相乗り）
+#   旧URL：GitHub Pages（https://igate244.github.io/karaoke-app/）は新URLへの案内ページだけを出す
+# Firebase の鍵（Secrets の FIREBASE_SERVICE_ACCOUNT）が未登録の間は、従来どおり GitHub Pages にアプリを出す。
 name: deploy
 
 on:
@@ -10,14 +13,18 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  checks: write
+  pull-requests: write
 
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      firebase: ${{ steps.fb.outputs.enabled }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,11 +37,45 @@ jobs:
           # OAuthクライアントID（公開して問題ない値）。reading-log-igate プロジェクトの「読書記録 PWA」を共用。
           # GitHub の Variables に GOOGLE_CLIENT_ID を入れるとそちらが優先される
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID || '1090226469026-gjmdmd131d784g5d8k1er1mho3ihdu2b.apps.googleusercontent.com' }}
+      - id: fb
+        env:
+          FB: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -n "$FB" ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"; else echo "enabled=false" >> "$GITHUB_OUTPUT"; fi
+      - name: GitHub Pages に出すものを用意
+        run: |
+          if [ "${{ steps.fb.outputs.enabled }}" = "true" ]; then
+            rm -rf pages && cp -r redirect pages
+          else
+            rm -rf pages && cp -r dist pages
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-dist
+          path: dist
+          include-hidden-files: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: pages
 
-  deploy:
+  firebase:
+    needs: build
+    if: needs.build.outputs.firebase == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-dist
+          path: dist
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: keep-app-30128
+          channelId: live
+
+  pages:
     needs: build
     runs-on: ubuntu-latest
     environment:
