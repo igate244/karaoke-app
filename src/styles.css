@@ -1068,3 +1068,51 @@ input[type='checkbox'] {
     grid-template-columns: 110px 1fr 28px;
   }
 }
+
+/* ---------- 曲検索の結果：試聴・歌詞 ---------- */
+.result-row {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.result-row .song-row {
+  border-bottom: 0;
+  padding-bottom: 4px;
+}
+.result-actions {
+  display: flex;
+  gap: 8px;
+  padding-left: 56px;
+}
+.mini-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+}
+.mini-btn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.song-sub.small {
+  font-size: 12px;
+}
+.phrase-box {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.phrase-box summary {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--accent);
+}
+.phrase-box .row {
+  margin-top: 10px;
+}

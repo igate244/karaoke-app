@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Song } from '../types';
 import { findDuplicate, putSong, useStore } from '../store';
-import { artwork, searchItunes, type ItunesTrack } from '../itunes';
+import { artwork, lyricsPhraseSearchUrl, lyricsSearchUrl, searchItunes, type ItunesTrack } from '../itunes';
 import { go } from '../router';
 import { pref, setPref } from '../users';
 import { SongForm, emptySong } from '../components/SongForm';
@@ -17,12 +17,7 @@ export function AddScreen() {
   const [draft, setDraft] = useState<Song | null>(null);
   const [keepAdding, setKeepAddingState] = useState(() => pref('keepAdding', false));
   const [formKey, setFormKey] = useState(0);
-
-  const setKeepAdding = (v: boolean) => {
-    setKeepAddingState(v);
-    setPref('keepAdding', v);
-  };
-
+  const [phrase, setPhrase] = useState('');
   const search = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!q.trim()) return;
@@ -38,7 +33,7 @@ export function AddScreen() {
     }
   };
 
-  const pick = (t: ItunesTrack) =>
+  const pick = (t: ItunesTrack) => {
     setDraft(
       emptySong({
         title: t.trackName,
@@ -47,6 +42,7 @@ export function AddScreen() {
         itunesTrackId: t.trackId,
       }),
     );
+  };
 
   const save = async (s: Song) => {
     await putSong(s);
@@ -123,7 +119,7 @@ export function AddScreen() {
               {results.map((t) => {
                 const dup = findDuplicate(t.trackName, t.artistName, t.trackId);
                 return (
-                  <li key={t.trackId}>
+                  <li key={t.trackId} className="result-row">
                     <button className="song-row" onClick={() => (dup ? go(`/song/${dup.id}`) : pick(t))}>
                       <Artwork url={t.artworkUrl100} size={44} />
                       <div className="song-main">
@@ -132,9 +128,17 @@ export function AddScreen() {
                           {t.artistName}
                           {t.releaseDate && ` · ${t.releaseDate.slice(0, 4)}`}
                         </div>
+                        {t.collectionName && t.collectionName !== t.trackName && (
+                          <div className="song-sub muted small">{t.collectionName}</div>
+                        )}
                       </div>
                       <div className="song-side">{dup ? <span className="badge">登録済み</span> : <Icon name="plus" size={20} />}</div>
                     </button>
+                    <div className="result-actions">
+                      <a className="mini-btn" href={lyricsSearchUrl(t.trackName, t.artistName)} target="_blank" rel="noreferrer">
+                        この曲の歌詞を見る
+                      </a>
+                    </div>
                   </li>
                 );
               })}
@@ -143,6 +147,22 @@ export function AddScreen() {
           {!results && !error && (
             <p className="hint">iTunesの曲データから探せるよ。カラオケ限定曲や見つからない曲は「手入力」で。</p>
           )}
+          <details className="phrase-box">
+            <summary>曲名がわからない？歌詞の一部で探す</summary>
+            <form
+              className="row"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (phrase.trim()) window.open(lyricsPhraseSearchUrl(phrase), '_blank', 'noopener');
+              }}
+            >
+              <input value={phrase} onChange={(e) => setPhrase(e.target.value)} placeholder="覚えてるフレーズ" enterKeyHint="search" />
+              <button type="submit" className="btn small" disabled={!phrase.trim()}>
+                Googleで探す
+              </button>
+            </form>
+            <p className="hint">曲名がわかったら、上の検索に入れてね。</p>
+          </details>
         </>
       ) : (
         <SongForm key={`manual-${formKey}`} initial={emptySong({ title: '', artist: '' })} submitLabel="登録する" onSubmit={save} />

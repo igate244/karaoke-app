@@ -58,3 +58,13 @@ export function artwork(url: string | undefined, size = 200): string | undefined
   if (!url) return undefined;
   return url.replace(/\/\d+x\d+bb\./, `/${size}x${size}bb.`);
 }
+
+/** 歌詞をGoogleで探すURL（歌詞そのものはアプリに取り込まない） */
+export function lyricsSearchUrl(title: string, artist?: string): string {
+  return `https://www.google.com/search?q=${encodeURIComponent([title, artist, '歌詞'].filter(Boolean).join(' '))}`;
+}
+
+/** 覚えている歌詞の一部から曲を探すURL */
+export function lyricsPhraseSearchUrl(phrase: string): string {
+  return `https://www.google.com/search?q=${encodeURIComponent(`"${phrase.trim()}" 歌詞`)}`;
+}
