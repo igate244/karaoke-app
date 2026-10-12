@@ -20,7 +20,8 @@
 - `src/csv.ts` CSV入出力（テストあり）
 - `src/screens/*` 画面、`src/components/*` 共通部品、`src/styles.css` 全スタイル（ダークテーマ）
 - `build.mjs` esbuild でビルド→ `dist/`、`src/sw.template.js` から sw.js を生成
-- `.github/workflows/deploy.yml` main への push で test→build→GitHub Pages 公開
+- `.github/workflows/deploy.yml` main への push で test→build→Firebase Hosting（https://karaoke-mochiuta.web.app）に公開。GitHub Pages は旧URLの案内ページ（`redirect/`）だけ
+- `firebase.json` / `.firebaserc` KEEP の Firebase プロジェクト（keep-app-30128）のサイト `karaoke-mochiuta`
 
 ## 確認方法
 ```

@@ -10,4 +10,6 @@
 - Googleドライブにバックアップ／復元、CSV入出力、利用者の切り替え
 - オフラインで動く（ホーム画面に追加して使う）
 
+アプリ：https://karaoke-mochiuta.web.app/
+
 運用は [OPERATIONS.md](OPERATIONS.md)、要件は [docs/requirements.md](docs/requirements.md)。

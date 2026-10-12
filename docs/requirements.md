@@ -13,7 +13,7 @@ SNS的な共有や他人との比較は持たない、自分だけのクロー�
 - Google Drive バックアップ（自動＋手動、マイドライブ内の「カラオケ持ち歌バックアップ」フォルダ、drive.file スコープ）
 - 複数利用者対応：各自が自分の端末・自分のGoogleアカウントで使い、データは個人ごと。端末間同期は「Driveから復元」で足りる
 - 曲情報の取得：iTunes Search API（`country=JP&entity=song&lang=ja_jp`、APIキー不要、JSONP）
-- ホスティング：GitHub Pages（main への push で GitHub Actions がテスト→ビルド→公開）
+- ホスティング：Firebase Hosting（https://karaoke-mochiuta.web.app、KEEP の Firebase プロジェクトに相乗り）。main への push で GitHub Actions がテスト→ビルド→公開
 - 開発・運用はスマホ完結（Claudeアプリから依頼 → Claudeが push → 自動公開）
 - モバイルファースト。ダークテーマ基調（カラオケ店の暗い室内で眩しくない）
 
