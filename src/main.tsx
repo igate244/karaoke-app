@@ -11,7 +11,7 @@ initStore().catch((e) => {
 });
 
 // PWA：オフライン対応。新しい版が入ったら次の起動で切り替わる。
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
+if ('serviceWorker' in navigator && window.isSecureContext) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });

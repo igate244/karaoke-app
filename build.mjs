@@ -62,12 +62,16 @@ const hash = createHash('sha256');
 for (const f of files.sort()) hash.update(f).update(readFileSync(join(DIST, f)));
 const version = hash.digest('hex').slice(0, 10);
 const precache = ['./', ...files.map((f) => `./${f}`)];
-writeFileSync(
-  join(DIST, 'sw.js'),
-  readFileSync('src/sw.template.js', 'utf8')
-    .replace('__VERSION__', version)
-    .replace('__PRECACHE__', JSON.stringify(precache)),
-);
+const swSource = readFileSync('src/sw.template.js', 'utf8')
+  .replaceAll('__VERSION__', version)
+  .replaceAll('__PRECACHE__', JSON.stringify(precache));
+if (/__VERSION__|__PRECACHE__/.test(swSource)) throw new Error('sw.js に置換漏れがあります');
+try {
+  new Function(swSource); // 構文チェック（壊れたSWはインストール不可になる）
+} catch (e) {
+  throw new Error(`sw.js の構文エラー: ${e.message}`);
+}
+writeFileSync(join(DIST, 'sw.js'), swSource);
 
 console.log(`built ${js} ${css} (sw ${version}, ${files.length} files) ${jst} JST`);
 

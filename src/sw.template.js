@@ -1,4 +1,4 @@
-// ビルド時に __VERSION__ と __PRECACHE__ が埋め込まれる
+// ビルド時にキャッシュ名とプリキャッシュ一覧が埋め込まれる（build.mjs）
 const CACHE = 'karaoke-__VERSION__';
 const PRECACHE = __PRECACHE__;
 
