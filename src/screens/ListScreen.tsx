@@ -56,6 +56,12 @@ export function ListScreen() {
   const [sort, setSortState] = useState<SortKey>(() => pref<SortKey>('sort', 'rating'));
   const [showScore, setShowScoreState] = useState(() => pref('showScore', true));
   const [filterOpen, setFilterOpen] = useState(false);
+  const [view, setViewState] = useState<'songs' | 'artists'>(() => pref<'songs' | 'artists'>('listView', 'songs'));
+  const setView = (v: 'songs' | 'artists') => {
+    setViewState(v);
+    setPref('listView', v);
+    window.scrollTo(0, 0);
+  };
 
   const update = (patch: Partial<Filters>) => {
     const next = { ...f, ...patch };
@@ -118,6 +124,14 @@ export function ListScreen() {
   return (
     <div className="screen">
       <div className="list-top">
+        <div className="seg view-toggle" role="tablist" aria-label="表示">
+          <button role="tab" aria-selected={view === 'songs'} className={view === 'songs' ? 'on' : ''} onClick={() => setView('songs')}>
+            曲
+          </button>
+          <button role="tab" aria-selected={view === 'artists'} className={view === 'artists' ? 'on' : ''} onClick={() => setView('artists')}>
+            アーティスト
+          </button>
+        </div>
         <div className="searchbar">
           <Icon name="search" size={18} />
           <input
@@ -138,6 +152,7 @@ export function ListScreen() {
           <button className={`chip ${activeChips.length ? 'on' : ''}`} onClick={() => setFilterOpen(true)}>
             <Icon name="filter" size={14} /> 絞り込み{activeChips.length ? ` ${activeChips.length}` : ''}
           </button>
+          {view === 'songs' && (
           <label className="sort-select">
             <Icon name="sort" size={14} />
             <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="並び順">
@@ -148,6 +163,7 @@ export function ListScreen() {
               ))}
             </select>
           </label>
+          )}
           <span className="count">{list.length}曲</span>
           <button className="icon-btn" onClick={toggleScore} aria-label={showScore ? '点数を隠す' : '点数を表示'}>
             <Icon name={showScore ? 'eye' : 'eyeOff'} size={18} />
@@ -196,65 +212,16 @@ export function ListScreen() {
         <div className="empty">
           <p>条件に合う曲がないよ</p>
         </div>
+      ) : view === 'artists' ? (
+        <ArtistView songs={list} f={f} showScore={showScore} />
       ) : (
         groups.map((g, gi) => (
           <section key={gi}>
             {g.head && <h3 className="group-head">{g.head}</h3>}
             <ul className="song-list">
-              {g.items.map((s) => {
-                const st = stats.get(s.id) ?? EMPTY_STATS;
-                return (
-                  <li key={s.id}>
-                    <a className="song-row" href={`#/song/${s.id}`}>
-                      <Artwork url={s.artworkUrl} size={44} />
-                      <div className="song-main">
-                        <div className="song-title">
-                          {s.favorite && <span className="fav" aria-label="お気に入り">♥</span>}
-                          {s.title}
-                        </div>
-                        <div className="song-sub">
-                          {!g.head && (
-                            <button
-                              className="artist-link"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                update({ artist: s.artist });
-                              }}
-                            >
-                              {s.artist}
-                            </button>
-                          )}
-                          {st.lastDate && <span className="muted"> · {fmtDate(st.lastDate)}</span>}
-                        </div>
-                        {(() => {
-                          const m = f.q.trim() ? memoHit(s, f.q) : null;
-                          return m ? (
-                            <div className="row-memo">
-                              <b>{m.label}</b> {m.text}
-                            </div>
-                          ) : null;
-                        })()}
-                        {s.tags.length > 0 && (
-                          <div className="row-tags">
-                            {s.tags.map((t) => (
-                              <span key={t} className={f.tags.includes(t) ? 'on' : ''}>
-                                #{t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="song-side">
-                        <Stars value={s.rating} size="sm" />
-                        <div className="song-meta">
-                          <span className={`key ${s.key ? 'changed' : ''}`}>{formatKey(s.key)}</span>
-                          {showScore && st.best != null && <span className="best">{fmtScore(st.best)}</span>}
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                );
-              })}
+              {g.items.map((s) => (
+                  <SongRow key={s.id} s={s} f={f} showArtist={!g.head} showScore={showScore} onArtist={(name) => update({ artist: name })} />
+              ))}
             </ul>
           </section>
         ))
@@ -295,5 +262,182 @@ export function ListScreen() {
         </button>
       </Sheet>
     </div>
+  );
+}
+
+function SongRow({
+  s,
+  f,
+  showArtist,
+  showScore,
+  onArtist,
+}: {
+  s: Song;
+  f: Filters;
+  showArtist: boolean;
+  showScore: boolean;
+  onArtist?: (artist: string) => void;
+}) {
+  const st = getStatsMap().get(s.id) ?? EMPTY_STATS;
+  const m = f.q.trim() ? memoHit(s, f.q) : null;
+  return (
+    <li>
+      <a className="song-row" href={`#/song/${s.id}`}>
+        <Artwork url={s.artworkUrl} size={44} />
+        <div className="song-main">
+          <div className="song-title">
+            {s.favorite && <span className="fav" aria-label="お気に入り">♥</span>}
+            {s.title}
+          </div>
+          <div className="song-sub">
+            {showArtist && (
+              <button
+                className="artist-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onArtist?.(s.artist);
+                }}
+              >
+                {s.artist}
+              </button>
+            )}
+            {st.lastDate && <span className="muted">{showArtist ? ' · ' : ''}{fmtDate(st.lastDate)}</span>}
+          </div>
+          {m && (
+            <div className="row-memo">
+              <b>{m.label}</b> {m.text}
+            </div>
+          )}
+          {s.tags.length > 0 && (
+            <div className="row-tags">
+              {s.tags.map((t) => (
+                <span key={t} className={f.tags.includes(t) ? 'on' : ''}>
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="song-side">
+          <Stars value={s.rating} size="sm" />
+          <div className="song-meta">
+            <span className={`key ${s.key ? 'changed' : ''}`}>{formatKey(s.key)}</span>
+            {showScore && st.best != null && <span className="best">{fmtScore(st.best)}</span>}
+          </div>
+        </div>
+      </a>
+    </li>
+  );
+}
+
+type ArtistSort = 'count' | 'name' | 'rating';
+const ARTIST_SORTS: { key: ArtistSort; label: string }[] = [
+  { key: 'count', label: '曲数が多い順' },
+  { key: 'rating', label: '歌える度順' },
+  { key: 'name', label: '名前順' },
+];
+
+interface ArtistGroup {
+  key: string;
+  name: string;
+  kana: string;
+  songs: Song[];
+  maxRating: number;
+}
+
+function ArtistView({ songs, f, showScore }: { songs: Song[]; f: Filters; showScore: boolean }) {
+  const [sort, setSortState] = useState<ArtistSort>(() => pref<ArtistSort>('artistSort', 'count'));
+  const [open, setOpenState] = useState<string[]>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('karaoke:openArtists') ?? '[]');
+    } catch {
+      return [];
+    }
+  });
+  const setOpen = (v: string[]) => {
+    setOpenState(v);
+    try {
+      sessionStorage.setItem('karaoke:openArtists', JSON.stringify(v));
+    } catch {
+      /* noop */
+    }
+  };
+  const setSort = (v: ArtistSort) => {
+    setSortState(v);
+    setPref('artistSort', v);
+  };
+
+  const groups = useMemo(() => {
+    const map = new Map<string, ArtistGroup>();
+    for (const s of songs) {
+      const key = normalize(s.artist);
+      const g = map.get(key) ?? { key, name: s.artist, kana: s.artistKana || s.artist, songs: [], maxRating: 0 };
+      g.songs.push(s);
+      g.maxRating = Math.max(g.maxRating, s.rating);
+      if (s.artistKana) g.kana = s.artistKana;
+      map.set(key, g);
+    }
+    const byName = (a: ArtistGroup, b: ArtistGroup) => a.kana.localeCompare(b.kana, 'ja');
+    const cmp: Record<ArtistSort, (a: ArtistGroup, b: ArtistGroup) => number> = {
+      count: (a, b) => b.songs.length - a.songs.length || b.maxRating - a.maxRating || byName(a, b),
+      rating: (a, b) => b.maxRating - a.maxRating || b.songs.length - a.songs.length || byName(a, b),
+      name: byName,
+    };
+    const out = [...map.values()].sort(cmp[sort]);
+    for (const g of out) g.songs.sort((a, b) => b.rating - a.rating || (a.titleKana || a.title).localeCompare(b.titleKana || b.title, 'ja'));
+    return out;
+  }, [songs, sort]);
+
+  // 検索・絞り込み中は全部開いて見せる
+  const filtering = Boolean(f.q.trim() || f.tags.length || f.minRating || f.machine || f.favorite);
+  const isOpen = (k: string) => filtering || open.includes(k);
+
+  return (
+    <>
+      <div className="artist-toolbar">
+        <label className="sort-select">
+          <Icon name="sort" size={14} />
+          <select value={sort} onChange={(e) => setSort(e.target.value as ArtistSort)} aria-label="アーティストの並び順">
+            {ARTIST_SORTS.map((s) => (
+              <option key={s.key} value={s.key}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <span className="count">{groups.length}組</span>
+        {!filtering && (
+          <button className="chip ghost" onClick={() => setOpen(open.length ? [] : groups.map((g) => g.key))}>
+            {open.length ? '全部閉じる' : '全部開く'}
+          </button>
+        )}
+      </div>
+      <ul className="artist-list">
+        {groups.map((g) => {
+          const o = isOpen(g.key);
+          return (
+            <li key={g.key} className={o ? 'open' : ''}>
+              <button
+                className="artist-row"
+                aria-expanded={o}
+                onClick={() => !filtering && setOpen(o ? open.filter((k) => k !== g.key) : [...open, g.key])}
+              >
+                <span className="artist-name">{g.name}</span>
+                <span className="artist-count">{g.songs.length}曲</span>
+                <Stars value={g.maxRating} size="sm" />
+                {!filtering && <span className="chev" aria-hidden="true">{o ? '▾' : '▸'}</span>}
+              </button>
+              {o && (
+                <ul className="song-list nested">
+                  {g.songs.map((s) => (
+                    <SongRow key={s.id} s={s} f={f} showArtist={false} showScore={showScore} />
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
